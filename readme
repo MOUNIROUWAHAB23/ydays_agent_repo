@@ -1,0 +1,39 @@
+# 🚀 Copilote de Candidature IA (Agent RAG Multi-Outils)
+
+Bienvenue dans le projet **Copilote de Candidature IA**, un assistant autonome conçu pour automatiser et ultra-personnaliser la recherche d'emploi. 
+
+Ce projet s'appuie sur une architecture **Multi-Agents (LangGraph)**, un modèle LLM exécuté localement pour la confidentialité (**Llama 3.1 via Ollama**), et interagit avec le monde réel via des **appels d'API (Tool Calling)**.
+
+---
+
+## 🌟 Fonctionnalités Principales
+
+* 📖 **Conscience de l'Utilisateur (RAG) :** L'agent lit et interroge une base de données vectorielle contenant le CV de l'utilisateur (ChromaDB) pour connaître ses compétences exactes.
+* 🔎 **Connexion au Web en Temps Réel :** Grâce à l'API **Tavily**, l'IA contourne sa date de coupure de connaissances et recherche les dernières actualités des entreprises ciblées.
+* ✍️ **Rédaction Sur Mesure :** L'agent croise les compétences du CV avec les actualités de l'entreprise pour rédiger des lettres de motivation hautement personnalisées.
+* 💾 **Automatisation du Suivi (Notion API) :** L'agent est capable d'appeler l'API de Notion pour insérer directement la candidature et la lettre de motivation dans le Kanban de suivi de l'utilisateur.
+* 🛡️ **Sécurité & Fallbacks :** Un système de "Routeur" intelligent surveille les réponses du modèle local et corrige les erreurs de formatage JSON à la volée.
+
+---
+
+## 🏗️ Architecture Technique
+
+Le flux de l'application est géré par un **Graphe d'État** non linéaire :
+
+1.  **L'Archiviste (`noeud_rag`) :** Analyse la requête et extrait le contexte du CV.
+2.  **Le Cerveau (`noeud_cerveau`) :** Le LLM prend des décisions sur la base du contexte et des outils disponibles.
+3.  **Le Routeur (`routeur`) :** Aiguilleur qui détermine si l'IA génère du texte final ou si elle nécessite l'exécution d'un outil.
+4.  **Le Bras Armé (`noeud_outils`) :** Exécute les requêtes Web ou les actions Notion de manière sécurisée, puis renvoie le résultat au Cerveau.
+
+---
+
+## 🛠️ Prérequis & Installation
+
+Ce projet est entièrement conteneurisé. Vous n'avez besoin que de **Docker** installé sur votre machine.
+
+### 1. Variables d'Environnement
+Créez un fichier `.env` à la racine du projet avec vos clés API :
+```env
+TAVILY_API_KEY="votre_cle_tavily"
+NOTION_TOKEN="votre_token_integration_notion"
+NOTION_DATABASE_ID="votre_id_de_base_de_donnees"

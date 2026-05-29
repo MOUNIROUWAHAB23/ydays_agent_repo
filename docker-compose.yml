@@ -1,0 +1,20 @@
+services:
+  app:
+    build: .
+    container_name: agent_candidature
+    volumes:
+      - .:/app
+    environment:
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
+      - NOTION_TOKEN=${NOTION_TOKEN}
+      - NOTION_DATABASE_ID=${NOTION_DATABASE_ID}
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # --- LES DEUX NOUVELLES LIGNES POUR STREAMLIT ---
+    ports:
+      - "8501:8501"
+    command: streamlit run ui.py --server.address=0.0.0.0
+    # ------------------------------------------------
+    stdin_open: true
+    tty: true

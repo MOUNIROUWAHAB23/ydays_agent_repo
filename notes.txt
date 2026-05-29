@@ -1,0 +1,179 @@
+C'est une excellente stratégie. En fait, construire un agent IA qui t'aide à trouver un stage est le "flex" ultime pour un entretien : tu pourras littéralement dire au recruteur "C'est mon agent IA qui a analysé votre entreprise et rédigé l'ébauche de ma lettre de motivation". 
+
+Voici un concept sur-mesure qui répond parfaitement à tes besoins personnels tout en validant rigoureusement le cahier des charges de ton projet.
+
+### Le projet : L'Agent "Copilote de Candidature"
+
+Ce système automatise la phase la plus fastidieuse de la recherche de stage : l'adaptation de ton profil à une offre spécifique et le suivi de tes démarches.
+
+* [cite_start]**Cibles :** Toi-même (étudiant en recherche de stage/alternance)[cite: 8].
+* [cite_start]**Problématique :** Adapter son CV, écrire une lettre ultra-personnalisée et assurer le suivi de dizaines de candidatures prend des heures[cite: 9]. 
+* [cite_start]**Justification :** Un simple GPT-4 ne connaît pas ton parcours en détail (tes anciens projets d'école, tes notes) et ne peut pas interagir en temps réel avec ton tableau de bord de suivi de candidatures[cite: 10].
+
+#### 1. L'Agent 1 - Le Spécialiste RAG (Ton "Cerveau" Personnel)
+Cet agent connaît tout de toi.
+* **Ingestion des données :** Tu lui fournis tes CVs (en PDF), tes rapports de projets scolaires (comme ce cahier des charges !), ton portfolio, et tes bulletins de notes.
+* [cite_start]**Le plus pour la note :** L'agent pourra justifier tes compétences en citant tes propres documents[cite: 17]. 
+    * *Exemple de sortie :* "Je te conseille de mettre en avant tes compétences en Python, car d'après le 'Rapport_Projet_S1.pdf', tu as développé une API REST performante."
+
+#### 2. L'Agent 2 - L'Agent d'Action (Le "Chasseur" et "Secrétaire")
+[cite_start]Cet agent agit sur le monde extérieur pour enrichir ta candidature[cite: 18].
+* [cite_start]**Outil 1 : Recherche Web (Obligatoire) :** Lorsqu'il reçoit une offre d'emploi, l'agent utilise le web (ex: API Tavily ou Serper) pour trouver les dernières actualités de l'entreprise cible (levée de fonds, nouveaux produits, valeurs)[cite: 19].
+* [cite_start]**Outil 2 : Outil Métier (API Notion ou Trello) :** Une fois la lettre générée, l'agent utilise une API pour ajouter automatiquement une carte dans ton Kanban de recherche de stage (ex: Colonne "À postuler", avec le nom de l'entreprise, le lien de l'offre et la lettre générée)[cite: 19].
+* [cite_start]**Le plus pour la note :** La création de la carte Trello/Notion valide l'exigence de formatage structuré des données récupérées (JSON)[cite: 20].
+
+#### 3. Comment ça se passera dans ta console (CLI)
+[cite_start]L'interface de ton terminal sera très claire pour ton professeur d'IA[cite: 29]:
+1.  [cite_start]**[Routeur]** : Détecte que tu veux postuler à "Offre_Data_Scientist_LVMH.txt"[cite: 30].
+2.  [cite_start]**[RAG]** : Recherche dans tes documents et sélectionne le "Projet de Machine Learning" pour coller à l'offre[cite: 31].
+3.  [cite_start]**[Outil]** : Appel de la recherche Web pour LVMH, puis appel de l'API Notion pour créer la tâche de suivi[cite: 32].
+4.  [cite_start]**[Final]** : "Voici l'argumentaire adapté pour LVMH. La tâche a été ajoutée à ton tableau de bord."[cite: 33].
+
+---
+
+C'est un projet très ancré dans la réalité, utile immédiatement, et techniquement solide. 
+
+Pour la partie "Agent d'Action", quel outil utilises-tu actuellement (ou aimerais-tu utiliser) pour suivre tes candidatures : Notion, Trello, ou un simple fichier Excel/Google Sheets ?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+C'est une excellente idée de faire le point. Comprendre exactement "qui fait quoi" dans ton code te sera extrêmement utile pour ta soutenance, car les professeurs adorent quand un étudiant maîtrise l'architecture de son projet.
+
+Dans ton application, tu utilises ce qu'on appelle un **Graphe d'État** (via LangGraph). Ton système n'est pas un seul gros bloc de code, mais une équipe d'agents spécialisés qui se passent la balle. 
+
+Voici le rôle exact de chaque "membre" de ton équipe virtuelle :
+
+### 🗂️ 1. L'Agent RAG (`noeud_rag`) : L'Archiviste
+*   **Son rôle :** C'est le tout premier à intervenir. Il ne réfléchit pas, il cherche.
+*   **Ce qu'il fait :** Dès que tu tapes un message, il prend ta phrase et va fouiller dans ta base de données vectorielle (ChromaDB) pour trouver des morceaux de ton CV qui correspondent.
+*   **Son super-pouvoir :** Il permet à ton système d'être "conscient" de qui tu es. C'est grâce à lui que l'IA sait que tu fais du Airflow ou du AWS sans que tu aies besoin de le répéter à chaque fois. Il place ces infos dans une variable appelée `contexte_rag`.
+
+### 🧠 2. L'Agent Cerveau (`noeud_cerveau`) : Le Manager et Rédacteur
+*   **Son rôle :** C'est l'intelligence du système (géré par Llama 3.1 via Ollama). 
+*   **Ce qu'il fait :** Il reçoit ton message, lit les informations trouvées par l'Archiviste (ton CV), et lit ses propres consignes strictes (le `system_prompt`). Ensuite, il prend une décision : *"Est-ce que j'ai assez d'infos pour répondre, ou dois-je utiliser un outil ?"*
+*   **Son super-pouvoir :** C'est lui qui rédige la fameuse lettre de motivation. Grâce à nos dernières modifications, il sait maintenant qu'il doit rédiger la lettre complète *avant* de l'envoyer à l'outil Notion.
+
+### 🚦 3. Le Routeur (`routeur`) : L'Aiguilleur du Ciel
+*   **Son rôle :** Ce n'est pas un agent qui génère du texte, c'est un "juge" qui observe ce que vient de faire le Cerveau.
+*   **Ce qu'il fait :** Il lit le dernier message du Cerveau. S'il voit que le Cerveau a demandé l'utilisation d'un outil (ex: chercher sur le web), il envoie le flux vers l'Exécuteur d'Outils. S'il voit que le Cerveau a juste écrit du texte classique, il dit "Fin" et affiche le message à l'écran.
+*   **Son super-pouvoir :** Sa robustesse (ton Routeur V3). S'il détecte que le Cerveau a essayé de tricher en écrivant du faux JSON, il le rattrape au vol et force l'utilisation de l'outil quand même.
+
+### 🛠️ 4. L'Agent d'Action (`noeud_outils`) : Le Bras Armé
+*   **Son rôle :** C'est le seul qui a le droit de communiquer avec le "monde extérieur".
+*   **Ce qu'il fait :** Il reçoit les ordres du Cerveau (les `tool_calls`). 
+    *   Si l'ordre est `recherche_entreprise`, il interroge l'API Tavily pour lire le web et ramène les actualités.
+    *   Si l'ordre est `ajouter_candidature_notion`, il se connecte à l'API Notion, crée la carte dans ton Kanban "À postuler", et écrit la lettre entière à l'intérieur.
+*   **Son super-pouvoir :** Une fois qu'il a fini d'exécuter un outil, il renvoie le résultat au Cerveau (en mode *"Tiens, j'ai fini, voici les infos du web, continue ton travail"*). C'est ce qui crée la "boucle" de ton architecture.
+
+---
+
+### En résumé (Le flux d'une requête) :
+Quand tu as tapé *"Je veux postuler chez Ubisoft..."* :
+1. **L'Archiviste (RAG)** a attrapé ton CV.
+2. **Le Cerveau** s'est dit : *"Je connais son CV, mais je ne connais pas Ubisoft. Je vais demander une recherche web !"*
+3. **Le Routeur** a vu la demande et a activé les Outils.
+4. **Le Bras Armé (Outils)** a fait la recherche Tavily et a renvoyé les infos au Cerveau.
+5. **Le Cerveau** s'est dit : *"Super ! J'ai le CV et les infos d'Ubisoft. Je rédige la lettre, et je demande à l'ajouter dans Notion."*
+6. **Le Routeur** a vu la nouvelle demande et a réactivé les Outils.
+7. **Le Bras Armé (Outils)** a créé la page Notion avec la lettre dedans.
+8. **Le Routeur** a vu que tout était fini et t'a rendu la main.
+
+C'est une architecture impressionnante que tu as montée là. Es-tu prêt à passer à la rédaction du `README.md` pour mettre tout cela en vitrine ?
+
+
+
+
+Parfait. Maintenant utilise l'outil Notion pour sauvegarder la première offre avec tous ses détails (entreprise, poste, lien_offre, lettre). Ensuite fais de même pour la deuxième offre; ainsi de suite !
+
+
+Cherche des offres de Data Engineer à Paris,îles-de-france. Affiche-moi pour chaque offre : le vrai nom de l'entreprise, le lien URL de l'offre, et la lettre de motivation correspondante
+
+
+
+Je suis ravi de postuler pour le poste de Data Consultant chez Artefact. Avec plus de 3 ans d'expérience dans l'ingénierie des données, je suis convaincu que mes compétences et mon expérience peuvent contribuer à la réussite de votre équipe.
+
+J'ai une solide connaissance en Python, SQL, PostgreSQL, Docker et AWS, ainsi qu'une bonne compréhension des principes d'architecture des systèmes de données. J'ai également une expérience dans l'utilisation de frameworks tels que Spark et Scala pour traiter de grandes quantités de données.
+
+Je suis particulièrement attiré par le fait que votre équipe se concentre sur la création de solutions innovantes pour les entreprises, ce qui correspond parfaitement à mes intérêts et compétences. Je suis convaincu que mon profil correspondrait parfaitement au poste et je serais ravi de discuter plus en détail avec vous.
+
+Merci de considérer ma candidature. Je suis impatient de discuter plus en détail de comment je peux contribuer à la réussite de votre équipe.
+
+
+
+
+
+
+
+
+
+
+
+PS C:\Users\HP\OneDrive\Desktop\ydays_project_agent> docker compose run --rm app
+[+] Creating 1/1
+ ✔ Network ydays_project_agent_default  Created                                                                                0.0s 
+=== Démarrage du Copilote de Candidature ===
+
+Toi: Je veux postuler au poste de Développeur Data chez Mistral AI. Cherche leurs dernières actualités sur le web pour personnaliser mon approche, vérifie dans mon CV quelles compétences je devrais mettre en avant, puis prépare-moi une réponse.
+
+[RAG]: Recherche dans les documents privés pour : 'Je veux postuler au poste de D...'
+[RAG]: 2 documents consultés.
+
+[Routeur V3]: Analyse de la prochaine action...
+[Routeur V3]: Décision -> Utiliser un outil (Mode Natif).
+
+[Outil]: Recherche Web (Tavily) effectuée pour : Mistral AI
+
+[Routeur V3]: Analyse de la prochaine action...
+[Routeur V3]: Décision -> Générer la réponse finale.
+
+[Final]: Sur la base de la recherche effectuée sur le web, il semble que Mistral AI soit une entreprise française spécialisée dans l'intelligence artificielle (IA) et les modèles de langage large ouverts. Ils sont connus pour leurs innovations dans les modèles de mixture d'experts (MoE) et ont développé des modèles qui approchent la performance des modèles plus grands.
+
+En regardant ton CV, il est évident que tu as acquis certaines compétences pertinentes pour ce poste. Voici quelques-unes que tu devrais mettre en avant :
+
+* Ingestion automatisée de données brutes via Airflow
+* Gestion sécurisée des connexions cloud (AWS) : rôles IAM
+* Connaissance de Python, SQL, PostgreSQL, Docker et AWS (EC2)
+* Expérience avec Metabase pour la visualisation analytique
+
+Voici une réponse que tu peux utiliser comme base pour postuler au poste de Développeur Data chez Mistral AI :
+
+"Bonjour,
+
+Je me permets de vous contacter pour postuler au poste de Développeur Data chez Mistral AI. Je suis un étudiant en master 1 Data Engineering avec des compétences solides dans l'ingestion automatisée de données brutes via Airflow, la gestion sécurisée des connexions cloud (AWS) et la connaissance de Python, SQL, PostgreSQL, Docker et AWS (EC2).
+
+Je suis particulièrement attiré par les innovations que Mistral AI a développées dans le domaine de l'intelligence artificielle et des modèles de langage large ouverts. Je pense que mes compétences et mon expérience pourraient être un atout pour votre équipe.     
+
+Je serais ravi de discuter plus en détail de ma candidature et de voir comment je peux contribuer à l'équipe de Mistral AI.
+
+Cordialement,
+GODLIGHT MOUNIROU"
+
+N'oublie pas de personnaliser ta réponse en fonction des informations que tu as trouvées sur le web et de tes propres compétences et expériences. Bonne chance pour ton postulat !
+
+Toi:
+
+
+
+
+
+
+
+
+
+
+
+je veux postuler au poste de Data Engineer chez Mistral AI. Cherche leurs actualités, rédige-moi une lettre de motivation sur mesure basée sur mon CV, puis sauvegarde cette candidature dans mon Notion avec la lettre entière.
+
+Je veux postuler au poste de Cloud Data Engineer chez Doctolib. Cherche leurs toutes dernières actualités. Rédige-moi une lettre de motivation sur mesure, puis ajoute cette candidature dans mon Notion avec la lettre intégrée.

@@ -1,0 +1,10 @@
+langchain
+langchain-community
+langgraph
+pypdf
+langchain-tavily
+python-dotenv
+notion-client
+langchain-ollama
+langchain-chroma
+streamlit
