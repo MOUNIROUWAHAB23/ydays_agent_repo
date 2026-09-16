@@ -1,39 +1,61 @@
-# 🚀 Copilote de Candidature IA (Agent RAG Multi-Outils)
+ Copilote de Candidature
 
-Bienvenue dans le projet **Copilote de Candidature IA**, un assistant autonome conçu pour automatiser et ultra-personnaliser la recherche d'emploi. 
+Agent IA multi-outils qui automatise la recherche d'emploi : il lit votre CV (RAG), enquête sur une entreprise sur le web, rédige une lettre de motivation sur mesure et l'ajoute dans votre suivi Notion — le tout via un LLM exécuté **en local** (Ollama), sans envoyer votre CV à un service tiers.
 
-Ce projet s'appuie sur une architecture **Multi-Agents (LangGraph)**, un modèle LLM exécuté localement pour la confidentialité (**Llama 3.1 via Ollama**), et interagit avec le monde réel via des **appels d'API (Tool Calling)**.
+## Architecture
 
----
+Graphe d'état [LangGraph](https://github.com/langchain-ai/langgraph), non linéaire :
 
-## 🌟 Fonctionnalités Principales
+```
+Utilisateur → RAG (lit le CV) → Cerveau (LLM, décide) ⇄ Outils (web / Notion) → Réponse finale
+```
 
-* 📖 **Conscience de l'Utilisateur (RAG) :** L'agent lit et interroge une base de données vectorielle contenant le CV de l'utilisateur (ChromaDB) pour connaître ses compétences exactes.
-* 🔎 **Connexion au Web en Temps Réel :** Grâce à l'API **Tavily**, l'IA contourne sa date de coupure de connaissances et recherche les dernières actualités des entreprises ciblées.
-* ✍️ **Rédaction Sur Mesure :** L'agent croise les compétences du CV avec les actualités de l'entreprise pour rédiger des lettres de motivation hautement personnalisées.
-* 💾 **Automatisation du Suivi (Notion API) :** L'agent est capable d'appeler l'API de Notion pour insérer directement la candidature et la lettre de motivation dans le Kanban de suivi de l'utilisateur.
-* 🛡️ **Sécurité & Fallbacks :** Un système de "Routeur" intelligent surveille les réponses du modèle local et corrige les erreurs de formatage JSON à la volée.
+- **RAG** — recherche les passages pertinents du CV dans ChromaDB
+- **Cerveau** — Llama 3.1 (via Ollama) décide de répondre ou d'appeler un outil
+- **Outils** — `recherche_entreprise` (Tavily) et `ajouter_candidature_notion` (API Notion)
+- **Routeur** — aiguille entre outil et réponse finale, avec une limite d'itérations anti-boucle
 
----
+## Stack
 
-## 🏗️ Architecture Technique
+Python · LangGraph · LangChain · Ollama (Llama 3.1 + nomic-embed-text) · ChromaDB · Tavily · Notion API · Streamlit · Docker
 
-Le flux de l'application est géré par un **Graphe d'État** non linéaire :
+## Installation
 
-1.  **L'Archiviste (`noeud_rag`) :** Analyse la requête et extrait le contexte du CV.
-2.  **Le Cerveau (`noeud_cerveau`) :** Le LLM prend des décisions sur la base du contexte et des outils disponibles.
-3.  **Le Routeur (`routeur`) :** Aiguilleur qui détermine si l'IA génère du texte final ou si elle nécessite l'exécution d'un outil.
-4.  **Le Bras Armé (`noeud_outils`) :** Exécute les requêtes Web ou les actions Notion de manière sécurisée, puis renvoie le résultat au Cerveau.
+**Prérequis :** Docker, et [Ollama](https://ollama.com/) lancé sur la machine hôte avec :
 
----
+```bash
+ollama pull llama3.1
+ollama pull nomic-embed-text
+```
 
-## 🛠️ Prérequis & Installation
+**Configuration :**
 
-Ce projet est entièrement conteneurisé. Vous n'avez besoin que de **Docker** installé sur votre machine.
+```bash
+cp .env.example .env   # puis renseignez vos clés (Tavily, Notion)
+```
 
-### 1. Variables d'Environnement
-Créez un fichier `.env` à la racine du projet avec vos clés API :
-```env
-TAVILY_API_KEY="votre_cle_tavily"
-NOTION_TOKEN="votre_token_integration_notion"
-NOTION_DATABASE_ID="votre_id_de_base_de_donnees"
+**Ingestion du CV** (placez votre CV en PDF dans `data/`) :
+
+```bash
+docker compose run --rm app python ingest.py
+```
+
+## Utilisation
+
+```bash
+docker compose up                              # interface web (Streamlit) → localhost:8501
+docker compose run --rm app python agent.py    # interface en ligne de commande
+```
+
+## Structure
+
+| Fichier | Rôle |
+|---|---|
+| `agent.py` | Graphe LangGraph, outils, interface CLI |
+| `ingest.py` | Chunking du CV + embeddings dans ChromaDB |
+| `ui.py` | Interface Streamlit |
+| `requirements.txt` | Dépendances (versions figées) |
+
+## Confidentialité
+
+Le LLM et les embeddings tournent entièrement en local via Ollama : le CV et les échanges ne quittent jamais la machine. Seule la requête de recherche d'actualités passe par l'API Tavily.
