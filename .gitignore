@@ -1,0 +1,27 @@
+# Secrets — ne jamais versionner
+.env
+.claude/
+
+*.pem
+*.key
+
+# Données personnelles (CV, rapports) et index vectoriel
+data/*
+!data/.gitkeep
+chroma_db/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/

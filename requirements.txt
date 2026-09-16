@@ -1,10 +1,15 @@
-langchain
-langchain-community
-langgraph
-pypdf
-langchain-tavily
-python-dotenv
-notion-client
-langchain-ollama
-langchain-chroma
-streamlit
+# Bornes de compatibilité (majeure figée). Pour un build strictement
+# reproductible : pip freeze > requirements.lock puis installer le lock en prod.
+langchain>=0.3,<0.4
+langchain-core>=0.3,<0.4
+langchain-community>=0.3,<0.4
+langchain-text-splitters>=0.3,<0.4
+langgraph>=0.2,<0.4
+langchain-ollama>=0.2,<0.4
+langchain-chroma>=0.2,<0.3
+langchain-tavily>=0.1,<0.3
+chromadb>=0.5,<1.2
+notion-client>=2.2,<3.0
+pypdf>=5.0,<7.0
+python-dotenv>=1.0,<2.0
+streamlit>=1.36,<2.0

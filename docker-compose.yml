@@ -1,20 +1,45 @@
 services:
   app:
     build: .
-    container_name: agent_candidature
-    volumes:
-      - .:/app
+    container_name: copilote_candidature
+    env_file: .env
     environment:
-      - TAVILY_API_KEY=${TAVILY_API_KEY}
-      - NOTION_TOKEN=${NOTION_TOKEN}
-      - NOTION_DATABASE_ID=${NOTION_DATABASE_ID}
-      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      # Valeur fixe : depuis le conteneur, l'hôte est host.docker.internal.
+      # Ne pas substituer depuis .env, qui contient l'URL d'exécution native.
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      CHROMA_DIR: /app/chroma_db
+      DOCUMENTS_DIR: /app/data
+    volumes:
+      - ./chroma_db:/app/chroma_db
+      - ./data:/app/data:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    # --- LES DEUX NOUVELLES LIGNES POUR STREAMLIT ---
     ports:
       - "8501:8501"
-    command: streamlit run ui.py --server.address=0.0.0.0
-    # ------------------------------------------------
-    stdin_open: true
-    tty: true
+    command:
+      - streamlit
+      - run
+      - app.py
+      - --server.address=0.0.0.0
+      - --server.port=8501
+      - --server.headless=true
+      - --server.enableCORS=false
+      - --server.enableXsrfProtection=false
+      - --browser.gatherUsageStats=false
+    restart: unless-stopped
+
+  # Service utilitaire : docker compose run --rm ingest
+  ingest:
+    build: .
+    env_file: .env
+    environment:
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      CHROMA_DIR: /app/chroma_db
+      DOCUMENTS_DIR: /app/data
+    volumes:
+      - ./chroma_db:/app/chroma_db
+      - ./data:/app/data:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    profiles: ["tools"]
+    command: ["python", "scripts/ingest.py"]
