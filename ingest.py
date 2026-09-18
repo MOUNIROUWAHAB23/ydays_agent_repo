@@ -5,7 +5,7 @@ from langchain_ollama import OllamaEmbeddings
 from langchain_chroma import Chroma
 def ingest_documents():
     print("[Ingestion] Chargement du CV...")
-    loader = PyPDFLoader("data/GODLIGHT MOUNIROU_CV.pdf") # Assure-toi d'avoir ce dossier et fichier
+    loader = PyPDFLoader("data/CV_Godlight_Mounirou_DataEngineer_.pdf") # Assure-toi d'avoir ce dossier et fichier
     documents = loader.load()
 
     print("[Ingestion] Découpage du texte (Chunking)...")
